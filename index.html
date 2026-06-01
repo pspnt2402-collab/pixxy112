@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Tlg-@Pixx_112 Shop</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Prompt -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root { --nav-height: 80px; --header-height: 60px; }
+        body, html {
+            font-family: 'Prompt', sans-serif; background-color: #fdf2f8; 
+            margin: 0; padding: 0; height: 100%; overflow: hidden; overscroll-behavior-y: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .app-container {
+            display: flex; flex-direction: column; height: 100%; height: 100dvh;
+            max-width: 480px; margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.7); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            position: relative; box-shadow: 0 0 25px rgba(236, 72, 153, 0.1); border-left: 1px solid #fce7f3; border-right: 1px solid #fce7f3;
+        }
+        .auth-container { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; width: 100%; padding: 20px; }
+        .auth-card { width: 100%; max-width: 360px; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px); border-radius: 24px; padding: 30px 20px; box-shadow: 0 10px 40px rgba(236, 72, 153, 0.15); border: 1px solid rgba(255, 255, 255, 0.5); transform: translateY(0); transition: all 0.4s ease; }
+        .content-area { flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 30px; -ms-overflow-style: none; scrollbar-width: none; scroll-behavior: smooth; }
+        .content-area::-webkit-scrollbar { display: none; }
+        .sticky-header { height: var(--header-height); flex-shrink: 0; z-index: 20; }
+        .bottom-nav { height: var(--nav-height); flex-shrink: 0; z-index: 50; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding-bottom: env(safe-area-inset-bottom); }
+        
+        /* สไลด์โปรโมชัน (Carousel) */
+        .carousel-container { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -ms-overflow-style: none; scroll-behavior: smooth; }
+        .carousel-container::-webkit-scrollbar { display: none; }
+        .carousel-slide { scroll-snap-align: start; flex: 0 0 100%; min-width: 100%; }
+
+        /* แถบค่าคอมเลื่อนขึ้นแนวตั้ง (Vertical Marquee Fixed) */
+        .marquee-vertical-wrapper {
+            position: relative;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+        .marquee-vertical-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            animation: marqueeVertical 40s linear infinite;
+        }
+        @keyframes marqueeVertical {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-50%); }
+        }
+        .marquee-item {
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 6px 0; height: 32px;
+        }
+        .mask-top { position: absolute; top: 0; left: 0; right: 0; height: 16px; background: linear-gradient(to bottom, rgba(255,255,255,1), transparent); z-index: 10; pointer-events: none; }
+        .mask-bottom { position: absolute; bottom: 0; left: 0; right: 0; height: 16px; background: linear-gradient(to top, rgba(255,255,255,1), transparent); z-index: 10; pointer-events: none; }
+        
+        /* BG Animation */
+        @keyframes floatUp { 0% { transform: translateY(100vh) rotate(0deg) scale(0.8); opacity: 0; } 10% { opacity: 0.5; } 90% { opacity: 0.5; } 100% { transform: translateY(-10vh) rotate(360deg) scale(1.2); opacity: 0; } }
+        .floating-bg-item { position: fixed; z-index: 0; font-size: 1.5rem; animation: floatUp 15s linear infinite; pointer-events: none; opacity: 0; }
+        
+        /* Buttons & Navs */
+        .nav-center-btn { position: absolute; top: -24px; left: 50%; transform: translateX(-50%); z-index: 60; }
+        .nav-item-btn { width: 20%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: none; border: none; outline: none; cursor: pointer; transition: all 0.2s; }
+        
+        /* Modals */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 1rem; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-card { background: white; width: 100%; max-width: 24rem; border-radius: 1.5rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); border: 1px solid #fce7f3; transform: scale(0.95); transition: transform 0.3s; }
+        .modal-overlay.active .modal-card { transform: scale(1); }
+        .chat-modal-enter { transform: translateY(100%); opacity: 0; }
+        .chat-modal-active { transform: translateY(0); opacity: 1; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    </style>
+</head>
+<body>
+
+    <!-- พื้นหลังลอย -->
+    <div id="floating-bg-container" class="fixed inset-0 overflow-hidden pointer-events-none z-0"></div>
+
+    <!-- ================= 1. AUTHENTICATION SCREEN ================= -->
+    <div id="auth-screen" class="app-container z-20">
+        <div class="auth-container relative z-10">
+            <div class="text-center mb-6 animate-[fade-in-up_0.5s_ease-out]">
+                <div class="w-20 h-20 bg-gradient-to-tr from-pink-400 to-pink-200 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg shadow-pink-200 border-4 border-white"><i data-lucide="shopping-bag" class="w-10 h-10 text-white"></i></div>
+                <h1 class="text-2xl font-bold text-gray-800 tracking-wider">Tlg-@Pixx_112 <span class="text-pink-500">Shop</span></h1>
+                <p class="text-[11px] text-gray-500 mt-1">ยินดีต้อนรับสู่แพลตฟอร์มสร้างรายได้ 💕</p>
+            </div>
+
+            <!-- Login Box -->
+            <div id="login-box" class="auth-card animate-[fade-in-up_0.6s_ease-out]">
+                <h2 class="text-lg font-bold text-gray-800 text-center mb-5">เข้าสู่ระบบ</h2>
+                <form id="login-form" class="space-y-4">
+                    <div><div class="relative"><span class="absolute left-4 top-1/2 -translate-y-1/2 text-pink-400"><i data-lucide="phone" class="w-5 h-5"></i></span><input type="tel" placeholder="เบอร์โทรศัพท์" required class="w-full bg-pink-50/50 border border-pink-100 rounded-full pl-11 pr-4 py-3 text-[13px] focus:outline-none focus:ring-2 focus:ring-pink-300 transition"></div></div>
+                    <div><div class="relative"><span class="absolute left-4 top-1/2 -translate-y-1/2 text-pink-400"><i data-lucide="lock" class="w-5 h-5"></i></span><input type="password" placeholder="รหัสผ่าน" required class="w-full bg-pink-50/50 border border-pink-100 rounded-full pl-11 pr-4 py-3 text-[13px] focus:outline-none focus:ring-2 focus:ring-pink-300 transition"></div></div>
+                    <div class="flex justify-end px-2"><a href="#" class="text-[10px] text-pink-500 hover:underline">ลืมรหัสผ่าน?</a></div>
+                    <button type="submit" class="w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold py-3.5 rounded-full shadow-lg shadow-pink-500/30 hover:shadow-xl active:scale-95 transition text-[14px]">เข้าสู่ระบบ</button>
+                </form>
+
+                <div class="mt-6">
+                    <div class="relative flex items-center justify-center mb-4"><div class="border-t border-gray-200 w-full absolute"></div><span class="bg-white/90 px-3 text-[10px] text-gray-400 relative z-10 font-medium">หรือเข้าสู่ระบบด้วย</span></div>
+                    <div class="flex justify-center gap-4">
+                        <button onclick="socialLoginReal('Google')" class="w-11 h-11 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-sm hover:shadow-md hover:bg-gray-50 transition active:scale-95"><svg class="w-5 h-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg></button>
+                        <button onclick="socialLoginReal('LINE')" class="w-11 h-11 bg-[#00C300] text-white rounded-full flex items-center justify-center shadow-sm hover:shadow-md hover:bg-[#00B300] transition active:scale-95"><svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M22.5 10.4c0-4.3-4.2-7.8-9.4-7.8s-9.4 3.5-9.4 7.8c0 3.8 3.3 7.2 8.1 7.7.3.1.8.2.9.5.1.2 0 .6 0 .8l-.2 1.2c0 .1-.1.4.3.2 1.3-.9 5-3.4 6.9-5.7 1.8-2 2.8-3.7 2.8-4.7zM7.2 12.9H5.7c-.2 0-.4-.2-.4-.4V8.7c0-.2.2-.4.4-.4h1.5c.2 0 .4.2.4.4v3.4h.2c0 .2-.2.4-.4.4zm3.9 0H9.6c-.2 0-.4-.2-.4-.4V8.7c0-.2.2-.4.4-.4h1.5c.2 0 .4.2.4.4v3.4c.1.2 0 .4-.2.4zm3.8 0h-1.5c-.2 0-.4-.2-.4-.4V8.7c0-.2.2-.4.4-.4h.2L14.7 11V8.7c0-.2.2-.4.4-.4h1.3c.2 0 .4.2.4.4v3.8c0 .2-.2.4-.4.4h-.2L15.3 11v2.3c0 .2-.2.4-.4.4zm4.4-2.8h-1.5v.7h1.5c.2 0 .4.2.4.4s-.2.4-.4.4h-1.9c-.2 0-.4-.2-.4-.4V8.7c0-.2.2-.4.4-.4h1.9c.2 0 .4.2.4.4s-.2.4-.4.4h-1.5v.6h1.5c.2 0 .4.2.4.4s-.2.4-.4.4z"/></svg></button>
+                        <button onclick="socialLoginReal('Apple')" class="w-11 h-11 bg-black text-white rounded-full flex items-center justify-center shadow-sm hover:shadow-md hover:bg-gray-900 transition active:scale-95"><i data-lucide="apple" class="w-5 h-5 fill-current"></i></button>
+                        <button onclick="socialLoginReal('Facebook')" class="w-11 h-11 bg-[#1877F2] text-white rounded-full flex items-center justify-center shadow-sm hover:shadow-md hover:bg-[#166FE5] transition active:scale-95"><svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></button>
+                    </div>
+                </div>
+                <div class="mt-6 text-center"><p class="text-[11px] text-gray-500">ยังไม่มีบัญชีผู้ใช้? <button onclick="toggleAuth('register')" class="text-pink-600 font-bold hover:underline">สมัครสมาชิก</button></p></div>
+            </div>
+
+            <!-- Register Box -->
+            <div id="register-box" class="auth-card hidden">
+                <h2 class="text-lg font-bold text-gray-800 text-center mb-5">สมัครสมาชิกใหม่</h2>
+                <form id="register-form" class="space-y-3.5">
+                    <div><div class="relative"><span class="absolute left-4 top-1/2 -translate-y-1/2 text-pink-400"><i data-lucide="phone" class="w-5 h-5"></i></span><input type="tel" placeholder="เบอร์โทรศัพท์" required class="w-full bg-pink-50/50 border border-pink-100 rounded-full pl-11 pr-4 py-3 text-[13px] focus:outline-none focus:ring-2 focus:ring-pink-300 transition"></div></div>
+                    <div><div class="relative"><span class="absolute left-4 top-1/2 -translate-y-1/2 text-pink-400"><i data-lucide="lock" class="w-5 h-5"></i></span><input type="password" placeholder="รหัสผ่าน" required class="w-full bg-pink-50/50 border border-pink-100 rounded-full pl-11 pr-4 py-3 text-[13px] focus:outline-none focus:ring-2 focus:ring-pink-300 transition"></div></div>
+                    <div><div class="relative"><span class="absolute left-4 top-1/2 -translate-y-1/2 text-pink-400"><i data-lucide="check-circle" class="w-5 h-5"></i></span><input type="password" placeholder="ยืนยันรหัสผ่าน" required class="w-full bg-pink-50/50 border border-pink-100 rounded-full pl-11 pr-4 py-3 text-[13px] focus:outline-none focus:ring-2 focus:ring-pink-300 transition"></div></div>
+                    <button type="submit" class="w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold py-3.5 rounded-full shadow-lg shadow-pink-500/30 mt-2 hover:shadow-xl active:scale-95 transition text-[14px]">ลงทะเบียน</button>
+                </form>
+                <div class="mt-6 text-center"><p class="text-[11px] text-gray-500">มีบัญชีอยู่แล้ว? <button onclick="toggleAuth('login')" class="text-pink-600 font-bold hover:underline">เข้าสู่ระบบเลย</button></p></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= 2. MAIN APP SCREEN ================= -->
+    <div id="main-app-screen" class="app-container z-10 hidden">
+        <!-- HEADER -->
+        <header class="sticky-header bg-white/95 backdrop-blur-md px-5 flex justify-between items-center shadow-sm border-b border-pink-100">
+            <h1 class="text-lg font-bold text-gray-800 tracking-wide">Tlg-@Pixx_112 <span class="text-pink-500">Shop</span> 💕</h1>
+            <div class="flex items-center gap-2">
+                <span class="text-[11px] bg-pink-100 text-pink-700 px-2.5 py-1 rounded-full font-semibold shadow-inner">ID: 55****725</span>
+                <button class="relative p-2 bg-pink-50 rounded-full hover:bg-pink-100 transition shadow-sm border border-pink-100">
+                    <i data-lucide="bell" class="w-5 h-5 text-pink-500"></i>
+                    <span class="absolute top-0 right-0 flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-pink-500 border-2 border-white"></span></span>
+                </button>
+            </div>
+        </header>
+
+        <!-- CONTENT AREA -->
+        <div class="content-area" id="main-content">
+            
+            <!-- TAB 1: HOME -->
+            <div id="tab-home" class="tab-content block animate-[fade-in-up_0.3s_ease-out]">
+                <div class="mx-4 mt-4 bg-red-50 border border-red-100 rounded-xl p-3 flex items-start gap-3 shadow-sm relative z-10">
+                    <div class="bg-red-100 p-1.5 rounded-full shrink-0"><i data-lucide="alert-triangle" class="w-4 h-4 text-red-500"></i></div>
+                    <div><h3 class="text-sm font-semibold text-red-700">โปรดระวังเว็บไซต์ปลอม</h3><p class="text-[11px] text-red-600 mt-0.5 leading-relaxed">ระวังมิจฉาชีพแอบอ้างใช้ชื่อแพลตฟอร์มของเรา โปรดตรวจสอบ URL ให้แน่ใจก่อนทำรายการ</p></div>
+                </div>
+
+                <!-- Dashboard Stats -->
+                <div class="mx-4 mt-5 bg-gradient-to-br from-pink-400 via-rose-500 to-pink-600 rounded-2xl p-5 text-white shadow-pink-500/30 shadow-lg relative overflow-hidden z-10">
+                    <div class="absolute -top-10 -right-10 w-32 h-32 bg-white opacity-20 rounded-full blur-xl"></div><div class="absolute -bottom-10 -left-10 w-24 h-24 bg-pink-300 opacity-30 rounded-full blur-lg"></div>
+                    <div class="relative z-10">
+                        <p class="text-sm text-pink-100 font-light flex items-center gap-1.5"><i data-lucide="wallet" class="w-4 h-4"></i> ยอดเงินของฉัน (บาท)</p>
+                        <h2 class="text-3xl font-bold mt-1 tracking-tight">฿ <span class="user-balance">9,362.04</span></h2>
+                        <div class="grid grid-cols-2 gap-4 mt-6 pt-4 border-t border-pink-300/40">
+                            <div><p class="text-xs text-pink-100">รายได้วันนี้</p><p class="text-lg font-semibold mt-0.5">฿ <span class="today-income">0.00</span></p></div>
+                            <div><p class="text-xs text-pink-100">ค่าคอมมิชชั่น</p><p class="text-lg font-semibold mt-0.5">฿ <span class="today-commission">383.04</span></p></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Promo Carousel (3 Slides) -->
+                <div class="mx-4 mt-5 relative rounded-2xl overflow-hidden shadow-md z-10">
+                    <div id="promo-carousel" class="carousel-container flex">
+                        <div class="carousel-slide bg-gradient-to-r from-fuchsia-400 to-pink-500 p-5 flex justify-between items-center relative group cursor-pointer" onclick="switchTab(event, 'start')">
+                            <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-white opacity-20 rounded-full group-hover:scale-110 transition duration-500"></div>
+                            <div class="z-10 w-2/3"><span class="inline-block px-2 py-1 bg-white/30 rounded text-[10px] text-white font-bold mb-2 backdrop-blur-sm border border-white/20">🔥 งานด่วนวันนี้</span><h3 class="text-lg font-bold text-white leading-tight">สุ่มออเดอร์สร้างรายได้</h3><p class="text-[11px] text-fuchsia-100 mt-1 mb-3">กดสุ่มรับออเดอร์เพื่อรับค่าคอมมิชชั่นสูง</p><span class="bg-white text-pink-500 text-xs font-bold py-1.5 px-4 rounded-full shadow-sm flex items-center gap-1 w-max">เริ่มทำงานเลย <i data-lucide="chevron-right" class="w-4 h-4"></i></span></div>
+                            <div class="z-10 w-1/3 flex justify-end"><div class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center rotate-12 shadow-inner border border-white/30"><i data-lucide="shopping-cart" class="w-8 h-8 text-white drop-shadow-md"></i></div></div>
+                        </div>
+                        <div class="carousel-slide bg-gradient-to-r from-rose-400 to-orange-400 p-5 flex justify-between items-center relative cursor-pointer" onclick="showToast('เงื่อนไขโปรโมชัน: สมาชิกใหม่รับโบนัส 100 บาท เมื่อฝากยอดแรก')">
+                            <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-white opacity-20 rounded-full"></div>
+                            <div class="z-10 w-2/3"><span class="inline-block px-2 py-1 bg-white/30 rounded text-[10px] text-white font-bold mb-2 backdrop-blur-sm border border-white/20">🎁 โปรสมาชิกใหม่</span><h3 class="text-lg font-bold text-white leading-tight">โบนัสต้อนรับ 100 ฿</h3><p class="text-[11px] text-rose-100 mt-1 mb-3">ฝากครั้งแรกรับโบนัสฟรีทันที กดรับเลย!</p><span class="bg-white text-rose-500 text-xs font-bold py-1.5 px-4 rounded-full shadow-sm flex items-center gap-1 w-max">ดูรายละเอียด <i data-lucide="chevron-right" class="w-4 h-4"></i></span></div>
+                            <div class="z-10 w-1/3 flex justify-end"><div class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center -rotate-12 shadow-inner border border-white/30"><i data-lucide="gift" class="w-8 h-8 text-white drop-shadow-md"></i></div></div>
+                        </div>
+                        <div class="carousel-slide bg-gradient-to-r from-violet-400 to-fuchsia-400 p-5 flex justify-between items-center relative cursor-pointer" onclick="showToast('คัดลอกลิงก์ชวนเพื่อนของคุณเรียบร้อยแล้ว!')">
+                            <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-white opacity-20 rounded-full"></div>
+                            <div class="z-10 w-2/3"><span class="inline-block px-2 py-1 bg-white/30 rounded text-[10px] text-white font-bold mb-2 backdrop-blur-sm border border-white/20">🎀 กิจกรรมพิเศษ</span><h3 class="text-lg font-bold text-white leading-tight">ชวนเพื่อนรับโบนัส</h3><p class="text-[11px] text-violet-100 mt-1 mb-3">รับค่าคอมมิชชั่น 5% จากยอดของเพื่อน</p><span class="bg-white text-violet-500 text-xs font-bold py-1.5 px-4 rounded-full shadow-sm flex items-center gap-1 w-max">คัดลอกลิงก์ <i data-lucide="copy" class="w-4 h-4 ml-1"></i></span></div>
+                            <div class="z-10 w-1/3 flex justify-end"><div class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center rotate-12 shadow-inner border border-white/30"><i data-lucide="users" class="w-8 h-8 text-white drop-shadow-md"></i></div></div>
+                        </div>
+                    </div>
+                    <div class="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5 z-20"><div class="w-2 h-2 rounded-full bg-white carousel-dot transition-colors"></div><div class="w-2 h-2 rounded-full bg-white/40 carousel-dot transition-colors"></div><div class="w-2 h-2 rounded-full bg-white/40 carousel-dot transition-colors"></div></div>
+                </div>
+
+                <!-- ค่าคอมมิชชันเลื่อนขึ้น (Vertical Marquee Fixed) -->
+                <div class="mx-4 mt-5 bg-white/95 backdrop-blur-sm rounded-xl py-2 px-4 shadow-sm border border-pink-100 flex items-start gap-3 z-10 relative h-[80px]">
+                    <div class="bg-pink-50 p-1.5 rounded-full border border-pink-100 shrink-0 mt-2"><i data-lucide="activity" class="w-4 h-4 text-pink-500"></i></div>
+                    
+                    <div class="marquee-vertical-wrapper">
+                        <div class="mask-top"></div>
+                        <div class="marquee-vertical-content" id="vertical-ticker">
+                            <!-- Items generate dynamically -->
+                        </div>
+                        <div class="mask-bottom"></div>
+                    </div>
+                </div>
+
+                <!-- Partners Grid -->
+                <div class="mx-4 mt-6 z-10 relative pb-4">
+                    <h3 class="text-sm font-bold text-gray-700 mb-3 px-1 flex items-center gap-2"><i data-lucide="store" class="w-4 h-4 text-pink-500"></i> แพลตฟอร์มพันธมิตร</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-white/95 rounded-xl p-3 flex flex-col items-center justify-center gap-2 shadow-sm border border-pink-50"><div class="w-10 h-10 rounded-full bg-[#f53d2d] flex items-center justify-center text-white"><i data-lucide="shopping-bag" class="w-5 h-5"></i></div><span class="text-[11px] font-semibold text-gray-700">Shopee</span></div>
+                        <div class="bg-white/95 rounded-xl p-3 flex flex-col items-center justify-center gap-2 shadow-sm border border-pink-50"><div class="w-10 h-10 rounded-full bg-[#00008b] flex items-center justify-center text-white"><i data-lucide="heart" class="w-5 h-5"></i></div><span class="text-[11px] font-semibold text-gray-700">Lazada</span></div>
+                        <div class="bg-white/95 rounded-xl p-3 flex flex-col items-center justify-center gap-2 shadow-sm border border-pink-50"><div class="w-10 h-10 rounded-full bg-[#e3000f] flex items-center justify-center text-white"><i data-lucide="box" class="w-5 h-5"></i></div><span class="text-[11px] font-semibold text-gray-700">Central</span></div>
+                        <div class="bg-white/95 rounded-xl p-3 flex flex-col items-center justify-center gap-2 shadow-sm border border-pink-50"><div class="w-10 h-10 rounded-full bg-[#009b4c] flex items-center justify-center text-white"><i data-lucide="shopping-cart" class="w-5 h-5"></i></div><span class="text-[11px] font-semibold text-gray-700">Robinson</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: START WORK -->
+            <div id="tab-start" class="tab-content hidden animate-[fade-in-up_0.3s_ease-out]">
+                <div class="mx-4 mt-5 bg-gradient-to-r from-pink-500 to-rose-400 rounded-xl p-4 text-white shadow-sm flex justify-between items-center z-10 relative">
+                    <div><p class="text-[11px] text-pink-100">ยอดเงินคงเหลือ</p><h3 class="text-xl font-bold">฿ <span class="user-balance">9,362.04</span></h3></div>
+                    <div class="text-right"><p class="text-[11px] text-pink-100">รายได้สะสมวันนี้</p><h3 class="text-lg font-semibold text-green-100">฿ <span class="today-income">0.00</span></h3></div>
+                </div>
+                <div class="mx-4 mt-6 bg-white/95 backdrop-blur-sm rounded-2xl p-6 border border-pink-100 text-center shadow-md relative z-10">
+                    <div class="w-16 h-16 bg-pink-50 rounded-full flex items-center justify-center mx-auto mb-3 border border-pink-100 shadow-inner"><i data-lucide="dices" class="w-8 h-8 text-pink-500 animate-pulse"></i></div>
+                    <h2 class="text-lg font-bold text-gray-800">ระบบสุ่มรับออเดอร์สินค้า</h2>
+                    <p class="text-[11px] text-gray-500 mt-1 max-w-[85%] mx-auto leading-relaxed">กดปุ่มสุ่มออเดอร์ด้านล่างเพื่อรับออเดอร์นำโชค และรับค่าคอมมิชชั่นเข้ากระเป๋าของคุณทันที!</p>
+                    <button id="btn-random-order" class="mt-5 w-full bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg shadow-pink-500/30 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition flex items-center justify-center gap-2">
+                        <i data-lucide="shuffle" class="w-5 h-5"></i> สุ่มรับออเดอร์นำโชค
+                    </button>
+                </div>
+                <div class="mx-4 mt-6 pb-6 relative z-10">
+                    <div class="flex justify-between items-center mb-3 px-1"><h3 class="text-sm font-bold text-gray-700 flex items-center gap-1.5"><i data-lucide="list" class="w-4 h-4 text-pink-500"></i> สินค้าในระบบทั้งหมด (10 ชิ้น)</h3></div>
+                    <div class="space-y-3" id="order-items-list"></div>
+                </div>
+            </div>
+
+            <!-- TAB 3: CART -->
+            <div id="tab-orders" class="tab-content hidden p-4 animate-[fade-in-up_0.3s_ease-out]">
+                <div class="bg-gradient-to-r from-pink-500 to-rose-400 p-5 rounded-2xl text-white shadow-md flex flex-col mb-5 border border-pink-400/50">
+                    <div class="flex items-center justify-between mb-4">
+                        <div><h2 class="text-lg font-bold flex items-center gap-2"><i data-lucide="shopping-cart" class="w-5 h-5 text-white"></i> ตะกร้าสินค้า</h2><p class="text-[11px] text-pink-100 mt-0.5">จัดการออเดอร์และรับค่าคอมมิชชัน</p></div>
+                        <div class="bg-white/20 px-3 py-1.5 rounded-xl backdrop-blur-sm text-center border border-white/20"><span class="text-sm font-bold block" id="cart-count">0 ชิ้น</span></div>
+                    </div>
+                    <div class="bg-white/10 rounded-xl p-3 flex justify-between items-center text-sm backdrop-blur-md border border-white/10">
+                        <div><span class="text-pink-100 text-[10px] block">มูลค่าสินค้ารวม</span><span class="font-semibold tracking-wide">฿ <span id="cart-total-value">0.00</span></span></div>
+                        <div class="text-right"><span class="text-pink-100 text-[10px] block">กำไรรวมที่ได้รับ</span><span class="font-bold text-green-300 tracking-wide">+ ฿ <span id="cart-total-commission">0.00</span></span></div>
+                    </div>
+                </div>
+                <div id="cart-items-container" class="space-y-3 pb-6 flex flex-col-reverse">
+                    <div class="bg-white/95 rounded-2xl p-10 text-center border border-pink-100 shadow-sm text-gray-400" id="empty-cart-msg">
+                        <div class="w-20 h-20 bg-pink-50 rounded-full flex items-center justify-center mx-auto mb-3"><i data-lucide="shopping-cart" class="w-10 h-10 text-pink-200"></i></div>
+                        <p class="text-sm font-semibold text-gray-500">ตะกร้าสินค้ายังว่างเปล่า</p>
+                        <p class="text-[11px] mt-1 text-gray-400">ไปที่หน้า 'เริ่มงาน' เพื่อทำการสุ่มออเดอร์</p>
+                        <button onclick="switchTab(event, 'start')" class="mt-4 bg-pink-100 text-pink-600 text-xs font-bold py-2 px-5 rounded-full hover:bg-pink-200 transition">ไปสุ่มออเดอร์</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: ACCOUNT -->
+            <div id="tab-account" class="tab-content hidden p-4 animate-[fade-in-up_0.3s_ease-out]">
+                <div class="bg-white/95 rounded-3xl p-6 border border-pink-100 text-center shadow-md relative z-10 mb-4">
+                    <div class="absolute top-4 right-4"><i data-lucide="settings" class="w-5 h-5 text-gray-300 hover:text-pink-500 cursor-pointer transition"></i></div>
+                    
+                    <div class="relative w-24 h-24 mx-auto mb-3">
+                        <div class="w-full h-full bg-gradient-to-tr from-pink-200 to-pink-100 rounded-full flex items-center justify-center border-4 border-white shadow-md overflow-hidden relative">
+                            <i id="default-avatar" data-lucide="user" class="w-12 h-12 text-pink-500"></i>
+                            <img id="user-avatar-img" src="" alt="Avatar" class="w-full h-full object-cover hidden">
+                        </div>
+                        <input type="file" id="upload-avatar-input" accept="image/*" class="hidden" onchange="previewAvatar(event)">
+                        <button onclick="document.getElementById('upload-avatar-input').click()" class="absolute bottom-0 right-0 bg-white p-2 rounded-full shadow-md border border-pink-100 text-gray-500 hover:text-pink-500 transition hover:scale-110 active:scale-95 cursor-pointer z-10">
+                            <i data-lucide="camera" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <div class="flex items-center justify-center gap-2 mb-1">
+                        <h3 class="text-lg font-bold text-gray-800" id="display-user-name">ผู้ใช้งานทั่วไป</h3>
+                        <button onclick="openModal('modal-edit-profile')" class="text-gray-400 hover:text-pink-500 transition p-1"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+                    </div>
+                    <span class="text-[10px] font-bold text-pink-600 bg-pink-100 px-3 py-1 rounded-full inline-block shadow-inner tracking-wide">VIP 1 MEMBER</span>
+                    
+                    <div class="grid grid-cols-3 gap-2 mt-5 border-t border-pink-50 pt-4">
+                        <div class="bg-pink-50/50 p-2 rounded-2xl text-center border border-pink-50"><p class="text-[9px] text-gray-500 font-medium">ยอดเงินคงเหลือ</p><p class="text-[11px] font-bold text-pink-600 mt-1">฿ <span class="user-balance">9,362.04</span></p></div>
+                        <div class="bg-rose-50/80 p-2 rounded-2xl text-center border border-rose-100"><p class="text-[9px] text-rose-500 font-bold flex items-center justify-center gap-0.5"><i data-lucide="lock" class="w-3 h-3"></i> ยอดแช่แข็ง</p><p class="text-[11px] font-bold text-rose-600 mt-1">฿ <span id="frozen-balance">1,500.00</span></p></div>
+                        <div class="bg-pink-50/50 p-2 rounded-2xl text-center border border-pink-50"><p class="text-[9px] text-gray-500 font-medium">ระดับเครดิต</p><p class="text-[11px] font-bold text-gray-800 mt-1">100 / 100</p></div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 mt-4">
+                        <button onclick="showToast('ระบบฝากเงินกำลังปรับปรุง กรุณาติดต่อฝ่ายบริการ')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 font-bold py-2.5 rounded-xl border border-emerald-100 transition text-sm flex items-center justify-center gap-1.5"><i data-lucide="arrow-down-to-line" class="w-4 h-4"></i> ฝากเงิน</button>
+                        <button onclick="openModal('modal-withdraw')" class="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-bold py-2.5 rounded-xl shadow-md transition text-sm flex items-center justify-center gap-1.5 active:scale-95"><i data-lucide="arrow-up-from-line" class="w-4 h-4"></i> ถอนเงิน</button>
+                    </div>
+                </div>
+
+                <h4 class="text-[11px] font-bold text-gray-500 mb-2 px-2 uppercase tracking-wide">รายการประวัติ</h4>
+                <div class="bg-white/95 rounded-2xl border border-pink-100 shadow-sm p-1.5 mb-4">
+                    <button onclick="openHistory('deposit')" class="w-full flex justify-between items-center p-3 text-sm text-gray-700 hover:bg-pink-50 rounded-xl transition border-b border-gray-50"><span class="flex items-center gap-3"><div class="p-1.5 bg-emerald-50 text-emerald-500 rounded-lg"><i data-lucide="history" class="w-4 h-4"></i></div> ประวัติการฝากเงิน</span><i data-lucide="chevron-right" class="w-4 h-4 text-gray-300"></i></button>
+                    <button onclick="openHistory('withdraw')" class="w-full flex justify-between items-center p-3 text-sm text-gray-700 hover:bg-pink-50 rounded-xl transition"><span class="flex items-center gap-3"><div class="p-1.5 bg-rose-50 text-rose-500 rounded-lg"><i data-lucide="history" class="w-4 h-4"></i></div> ประวัติการถอนเงิน</span><i data-lucide="chevron-right" class="w-4 h-4 text-gray-300"></i></button>
+                </div>
+
+                <h4 class="text-[11px] font-bold text-gray-500 mb-2 px-2 uppercase tracking-wide">การตั้งค่าบัญชี</h4>
+                <div class="bg-white/95 rounded-2xl border border-pink-100 shadow-sm p-1.5 mb-4">
+                    <button onclick="openModal('modal-bank-account')" class="w-full flex justify-between items-center p-3 text-sm text-gray-700 hover:bg-pink-50 rounded-xl transition border-b border-gray-50"><span class="flex items-center gap-3"><div class="p-1.5 bg-blue-50 text-blue-500 rounded-lg"><i data-lucide="credit-card" class="w-4 h-4"></i></div> บัญชีธนาคารรับเงิน</span><div class="flex items-center gap-2"><span id="bank-status-text" class="text-[10px] text-red-500 font-medium">ยังไม่ผูกบัญชี</span> <i data-lucide="chevron-right" class="w-4 h-4 text-gray-300"></i></div></button>
+                    <button class="w-full flex justify-between items-center p-3 text-sm text-gray-700 hover:bg-pink-50 rounded-xl transition border-b border-gray-50"><span class="flex items-center gap-3"><div class="p-1.5 bg-amber-50 text-amber-500 rounded-lg"><i data-lucide="lock" class="w-4 h-4"></i></div> เปลี่ยนรหัสผ่าน</span><i data-lucide="chevron-right" class="w-4 h-4 text-gray-300"></i></button>
+                    <button onclick="doLogout()" class="w-full flex justify-between items-center p-3 text-sm text-gray-700 hover:bg-red-50 rounded-xl transition"><span class="flex items-center gap-3 font-medium text-red-500"><div class="p-1.5 bg-red-50 text-red-500 rounded-lg"><i data-lucide="log-out" class="w-4 h-4"></i></div> ออกจากระบบ</span></button>
+                </div>
+            </div>
+        </div> 
+
+        <!-- BOTTOM NAVIGATION -->
+        <nav class="bottom-nav border-t border-pink-100 px-1 py-1 rounded-t-3xl shadow-[0_-10px_20px_rgba(236,72,153,0.05)] relative z-[90]">
+            <div class="flex justify-between items-center h-full relative">
+                <button type="button" id="nav-home" onclick="switchTab(event, 'home')" class="nav-item-btn text-pink-600"><i data-lucide="home" class="w-6 h-6 mb-1"></i><span class="text-[10px] font-medium">หน้าแรก</span></button>
+                <button type="button" id="nav-orders" onclick="switchTab(event, 'orders')" class="nav-item-btn text-gray-400 hover:text-pink-500 relative"><span id="cart-badge" class="absolute top-0 right-2 bg-red-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full border-2 border-white hidden shadow-sm">0</span><i data-lucide="shopping-cart" class="w-6 h-6 mb-1"></i><span class="text-[10px] font-medium">ตะกร้า</span></button>
+                <div class="w-[20%]"></div>
+                <button type="button" onclick="contactAdmin()" class="nav-item-btn text-gray-400 hover:text-pink-500 relative"><div class="absolute top-0 right-3 w-2 h-2 bg-red-500 rounded-full border-2 border-white animate-pulse"></div><i data-lucide="headphones" class="w-6 h-6 mb-1"></i><span class="text-[10px] font-medium">บริการ</span></button>
+                <button type="button" id="nav-account" onclick="switchTab(event, 'account')" class="nav-item-btn text-gray-400 hover:text-pink-500"><i data-lucide="user" class="w-6 h-6 mb-1"></i><span class="text-[10px] font-medium">บัญชี</span></button>
+            </div>
+            <div class="nav-center-btn">
+                <button type="button" onclick="switchTab(event, 'start')" id="nav-start" class="w-16 h-16 bg-gradient-to-tr from-pink-500 to-rose-400 rounded-full flex flex-col items-center justify-center text-white shadow-xl shadow-pink-400/40 border-4 border-white active:scale-95 transition-transform hover:-translate-y-1">
+                    <i data-lucide="power" class="w-6 h-6"></i><span class="text-[9px] font-bold mt-0.5">เริ่มงาน</span>
+                </button>
+            </div>
+        </nav>
+    </div> <!-- END MAIN APP SCREEN -->
+
+    <!-- ================= MODALS & OVERLAYS ================= -->
+    <div id="modal-edit-profile" class="modal-overlay">
+        <div class="modal-card p-6">
+            <div class="flex justify-between items-center mb-5"><h3 class="font-bold text-gray-800 flex items-center gap-2"><i data-lucide="pencil" class="w-4 h-4 text-pink-500"></i> เปลี่ยนชื่อผู้ใช้งาน</h3><button onclick="closeModal('modal-edit-profile')" class="text-gray-400 hover:text-gray-600"><i data-lucide="x" class="w-5 h-5"></i></button></div>
+            <div class="mb-4"><label class="block text-xs text-gray-500 mb-1">ระบุชื่อใหม่</label><input type="text" id="input-profile-name" class="w-full bg-pink-50 border border-pink-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200" value="ผู้ใช้งานทั่วไป"></div>
+            <button onclick="saveProfile()" class="w-full bg-pink-500 text-white font-bold py-3 rounded-xl hover:bg-pink-600 transition active:scale-95">บันทึกชื่อ</button>
+        </div>
+    </div>
+
+    <div id="modal-bank-account" class="modal-overlay">
+        <div class="modal-card p-6">
+            <div class="flex justify-between items-center mb-5"><h3 class="font-bold text-gray-800 flex items-center gap-2"><i data-lucide="credit-card" class="w-4 h-4 text-pink-500"></i> ผูกบัญชีธนาคาร</h3><button onclick="closeModal('modal-bank-account')" class="text-gray-400 hover:text-gray-600"><i data-lucide="x" class="w-5 h-5"></i></button></div>
+            <div class="space-y-3">
+                <div><select id="input-bank-name" class="w-full bg-pink-50 border border-pink-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200"><option value="">-- เลือกธนาคาร --</option><option value="kbank">ธนาคารกสิกรไทย (KBANK)</option><option value="scb">ธนาคารไทยพาณิชย์ (SCB)</option><option value="bbl">ธนาคารกรุงเทพ (BBL)</option></select></div>
+                <div><input type="text" id="input-bank-acc-name" placeholder="ชื่อบัญชี (ตรงกับที่ลงทะเบียน)" class="w-full bg-pink-50 border border-pink-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200"></div>
+                <div><input type="number" id="input-bank-acc-no" placeholder="เลขที่บัญชี" class="w-full bg-pink-50 border border-pink-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200"></div>
+            </div>
+            <div class="mt-5 text-[10px] text-red-500 mb-4 bg-red-50 p-2 rounded-lg border border-red-100">* ตรวจสอบข้อมูลให้ถูกต้อง หากผิดพลาดจะไม่สามารถถอนเงินได้</div>
+            <button onclick="saveBank()" class="w-full bg-pink-500 text-white font-bold py-3 rounded-xl hover:bg-pink-600 transition active:scale-95">ยืนยันการผูกบัญชี</button>
+        </div>
+    </div>
+
+    <div id="modal-withdraw" class="modal-overlay">
+        <div class="modal-card p-6 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-pink-400 to-rose-400"></div>
+            <div class="flex justify-between items-center mb-4 mt-2"><h3 class="font-bold text-gray-800 flex items-center gap-2"><i data-lucide="arrow-up-from-line" class="w-5 h-5 text-rose-500"></i> ทำรายการถอนเงิน</h3><button onclick="closeModal('modal-withdraw')" class="text-gray-400 hover:text-gray-600"><i data-lucide="x" class="w-5 h-5"></i></button></div>
+            <div class="bg-gray-50 rounded-xl p-4 text-center mb-4 border border-gray-100"><p class="text-[11px] text-gray-500">ยอดเงินที่สามารถถอนได้</p><h2 class="text-2xl font-bold text-pink-600 mt-1">฿ <span class="user-balance">9,362.04</span></h2></div>
+            <div class="mb-5">
+                <label class="block text-[11px] text-gray-500 mb-1">ระบุจำนวนเงินที่ต้องการถอน (บาท)</label>
+                <div class="relative"><span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">฿</span><input type="number" id="input-withdraw-amt" placeholder="0.00" class="w-full bg-white border border-pink-200 rounded-xl pl-9 pr-4 py-3 text-lg font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-pink-300"></div>
+            </div>
+            <button onclick="processWithdraw()" class="w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold py-3.5 rounded-xl shadow-md active:scale-95 transition">ส่งคำขอถอนเงิน</button>
+        </div>
+    </div>
+
+    <div id="modal-history" class="modal-overlay">
+        <div class="modal-card h-[70vh] flex flex-col overflow-hidden">
+            <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-3xl"><h3 class="font-bold text-gray-800" id="history-modal-title">ประวัติรายการ</h3><button onclick="closeModal('modal-history')" class="bg-white p-1.5 rounded-full shadow-sm text-gray-400 hover:text-gray-600"><i data-lucide="x" class="w-4 h-4"></i></button></div>
+            <div class="flex-1 overflow-y-auto p-4 bg-white" id="history-modal-content"></div>
+        </div>
+    </div>
+
+    <!-- RANDOM ORDER MODAL -->
+    <div id="random-modal" class="modal-overlay z-[210]">
+        <div class="modal-card p-0 overflow-hidden" id="random-modal-box">
+            <div class="bg-gradient-to-r from-pink-500 to-rose-400 p-5 text-white text-center relative"><h3 class="text-lg font-bold">✨ ออเดอร์ของท่านมาแล้ว ✨</h3><p class="text-[11px] text-pink-100 mt-1">กรุณากดตกลงเพื่อส่งสินค้าไปที่หน้าตะกร้า</p></div>
+            <div class="p-6">
+                <div class="flex gap-4 items-center bg-pink-50/50 p-4 rounded-2xl border border-pink-100">
+                    <div class="w-16 h-16 bg-white rounded-xl flex items-center justify-center text-3xl shadow-sm shrink-0 border border-pink-50" id="modal-product-icon"></div>
+                    <div class="flex-1"><span class="text-[9px] bg-pink-100 text-pink-600 px-2 py-0.5 rounded-full font-bold flex items-center gap-1 w-max mb-1"><i data-lucide="shopping-cart" class="w-3 h-3"></i> รอการสั่งซื้อ</span><h4 class="font-bold text-sm text-gray-800 line-clamp-2 leading-tight" id="modal-product-name">ชื่อสินค้า</h4></div>
+                </div>
+                <div class="mt-5 space-y-2.5 text-sm text-gray-600 border-b border-pink-100/50 pb-4">
+                    <div class="flex justify-between items-center"><span class="text-[11px] text-gray-500">ราคาสินค้า:</span><span class="font-semibold text-gray-800">฿ <span id="modal-product-price">0</span></span></div>
+                    <div class="flex justify-between items-center text-pink-600 bg-pink-50/50 p-2 rounded-lg border border-pink-50"><span class="text-[11px] font-medium">ค่าคอมมิชชั่น (15%):</span><span class="font-bold">+ ฿ <span id="modal-product-commission">0</span></span></div>
+                </div>
+                <div class="mt-4 flex justify-between items-center"><span class="text-[11px] text-gray-400 font-medium">กำไรสุทธิที่คาดว่าจะได้รับ</span><span class="text-xl font-black text-emerald-500">+ ฿ <span id="modal-total-earn">0</span></span></div>
+                <div class="grid grid-cols-2 gap-3 mt-6">
+                    <button type="button" id="btn-chat-admin-order" class="bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold py-3 px-2 rounded-xl transition text-[13px] flex items-center justify-center gap-1"><i data-lucide="headphones" class="w-4 h-4 text-gray-500"></i> ติดต่อแอดมิน</button>
+                    <button type="button" id="btn-ok-order" class="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-pink-500/30 transition text-[13px] flex items-center justify-center gap-1.5 active:scale-95"><i data-lucide="check-circle" class="w-4 h-4"></i> ตกลง</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loaders & Toasts -->
+    <div id="loading-overlay" class="modal-overlay z-[250]">
+        <div class="flex flex-col items-center justify-center text-white">
+            <div class="relative w-24 h-24"><div class="absolute inset-0 rounded-full border-4 border-pink-200 opacity-20"></div><div class="absolute inset-0 rounded-full border-4 border-t-pink-500 animate-spin"></div><div class="absolute inset-0 flex items-center justify-center"><i data-lucide="heart" class="w-8 h-8 text-pink-500 animate-pulse"></i></div></div>
+            <p class="mt-5 font-bold text-sm tracking-wide animate-pulse bg-black/40 px-4 py-2 rounded-full backdrop-blur-md" id="loading-text">กำลังทำรายการ...</p>
+        </div>
+    </div>
+
+    <div id="toast-notification" class="fixed top-12 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-5 py-3 rounded-full shadow-lg text-sm z-[300] transform -translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-2 min-w-max">
+        <i data-lucide="info" class="w-4 h-4 text-pink-400"></i><span id="toast-message">แจ้งเตือน</span>
+    </div>
+
+    <!-- Live Chat Modal (Fixed Close Button) -->
+    <div id="chat-overlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[150] hidden opacity-0 transition-opacity duration-300">
+        <div id="chat-box" class="absolute bottom-0 w-full max-w-md mx-auto left-0 right-0 h-[85%] bg-[#fdf2f8] rounded-t-3xl flex flex-col shadow-2xl chat-modal-enter border-x border-pink-100">
+            <div class="bg-gradient-to-r from-pink-500 to-rose-400 p-4 rounded-t-3xl flex justify-between items-center text-white shadow-md z-10">
+                <div class="flex items-center gap-3">
+                    <div class="relative"><div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm"><i data-lucide="headphones" class="w-5 h-5"></i></div><span class="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-white rounded-full"></span></div>
+                    <div><h3 class="font-bold text-sm tracking-wide">ฝ่ายบริการลูกค้า</h3><p class="text-[10px] text-pink-100">ออนไลน์</p></div>
+                </div>
+                <!-- ปุ่มปิด (X) -->
+                <button type="button" id="close-chat" class="p-2 bg-white/10 hover:bg-white/20 rounded-full transition cursor-pointer"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 content-area bg-white/40">
+                <div class="flex items-start gap-2 max-w-[85%]">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center text-white shrink-0 mt-1 shadow-sm"><i data-lucide="headset" class="w-4 h-4"></i></div>
+                    <div class="bg-white p-3 rounded-2xl rounded-tl-sm text-[13px] text-gray-700 shadow-sm border border-pink-50 leading-relaxed">สวัสดีค่ะ! มีอะไรให้แอดมินช่วยเหลือไหมคะ? 💕</div>
+                </div>
+            </div>
+            <div class="p-3 bg-white border-t border-pink-100 pb-[calc(12px+env(safe-area-inset-bottom))]">
+                <form id="chat-form" class="flex items-center gap-2">
+                    <input type="text" id="chat-input" placeholder="พิมพ์ข้อความที่นี่..." class="flex-1 bg-pink-50 border border-pink-100 rounded-full px-4 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-pink-200">
+                    <button type="submit" class="p-2.5 bg-gradient-to-r from-pink-500 to-rose-400 text-white rounded-full shadow-md active:scale-95"><i data-lucide="send" class="w-4 h-4 ml-0.5"></i></button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= SCRIPTS ================= -->
+    <script>
+        lucide.createIcons();
+
+        // ---------------- DATA STATE ----------------
+        let currentBalance = 15362.04; let earnedIncomeToday = 0.00; let cumulativeCommission = 383.04;
+        let cartItems = []; let totalCartValue = 0; let totalCartCommission = 0;
+        let userName = "ผู้ใช้งานทั่วไป"; let isBankLinked = false; let userProfileImage = null; 
+        
+        let withdrawHistory = []; let depositHistory = [{ id: "DP5589", amount: 5000, time: "เมื่อวาน 14:20 น.", status: "สำเร็จ" }];
+        
+        const productsList = [
+            { id: 1, name: "ไดร์เป่าผมพรีเมียมไอออนิก Dyson Airwrap", price: 4500, commission: 675, emoji: "💨", iconBg: "bg-blue-50" },
+            { id: 2, name: "เครื่องล้างหน้าซิลิโคน Foreo", price: 2300, commission: 345, emoji: "🧼", iconBg: "bg-pink-50" },
+            { id: 3, name: "หูฟังไร้สายตัดเสียงรบกวน", price: 8900, commission: 1335, emoji: "🎧", iconBg: "bg-purple-50" },
+            { id: 4, name: "กระติกน้ำสแตนเลสเก็บความเย็น", price: 850, commission: 127.5, emoji: "🥤", iconBg: "bg-yellow-50" },
+            { id: 5, name: "เครื่องฟอกอากาศอัจฉริยะ", price: 5400, commission: 810, emoji: "🍃", iconBg: "bg-green-50" }
+        ];
+        let selectedProduct = null;
+        function getPendingItemIndex() { return cartItems.findIndex(item => item.status === 'pending' || item.status === 'purchased'); }
+
+        // ---------------- AUTH SYSTEM ----------------
+        function toggleAuth(mode) {
+            const loginBox = document.getElementById('login-box'); const registerBox = document.getElementById('register-box');
+            if (mode === 'register') { loginBox.classList.add('hidden'); registerBox.classList.remove('hidden'); registerBox.classList.add('animate-[fade-in-up_0.3s_ease-out]'); } 
+            else { registerBox.classList.add('hidden'); loginBox.classList.remove('hidden'); loginBox.classList.add('animate-[fade-in-up_0.3s_ease-out]'); }
+        }
+        function socialLoginReal(provider) {
+            let authUrl = '';
+            if (provider === 'Google') authUrl = 'https://accounts.google.com/o/oauth2/v2/auth?client_id=demo&redirect_uri=https://yourwebsite.com&response_type=token&scope=email';
+            else if (provider === 'LINE') authUrl = 'https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=demo&redirect_uri=https://yourwebsite.com&state=demo&scope=profile';
+            else if (provider === 'Facebook') authUrl = 'https://www.facebook.com/v13.0/dialog/oauth?client_id=demo&redirect_uri=https://yourwebsite.com&state=demo';
+            else if (provider === 'Apple') authUrl = 'https://appleid.apple.com/auth/authorize?client_id=demo&redirect_uri=https://yourwebsite.com&response_type=code&scope=name';
+            const popup = window.open(authUrl, 'SocialLoginPopup', 'width=500,height=600,top=100,left=100');
+            document.getElementById('loading-text').innerText = `กำลังรอการยืนยันจาก ${provider}...`;
+            showLoading(3500, () => {
+                if (popup && !popup.closed) popup.close();
+                document.getElementById('auth-screen').classList.add('hidden'); document.getElementById('main-app-screen').classList.remove('hidden'); switchTab(null, 'home');
+                userName = `เข้าสู่ระบบผ่าน ${provider}`; updateBalances(); showToast(`เชื่อมต่อบัญชี ${provider} สำเร็จ! 💕`);
+            });
+        }
+        document.getElementById('login-form').addEventListener('submit', function(e) { e.preventDefault(); document.getElementById('loading-text').innerText = "กำลังเข้าสู่ระบบ..."; showLoading(1500, () => { document.getElementById('auth-screen').classList.add('hidden'); document.getElementById('main-app-screen').classList.remove('hidden'); switchTab(null, 'home'); showToast("เข้าสู่ระบบสำเร็จ! ยินดีต้อนรับกลับมา 💕"); }); });
+        document.getElementById('register-form').addEventListener('submit', function(e) { e.preventDefault(); document.getElementById('loading-text').innerText = "กำลังสร้างบัญชีใหม่..."; showLoading(1800, () => { document.getElementById('auth-screen').classList.add('hidden'); document.getElementById('main-app-screen').classList.remove('hidden'); switchTab(null, 'home'); showToast("ลงทะเบียนสำเร็จ! เริ่มต้นสร้างรายได้กันเลย 🎉"); }); });
+        function doLogout() { document.getElementById('loading-text').innerText = "กำลังออกจากระบบ..."; showLoading(1000, () => { document.getElementById('main-app-screen').classList.add('hidden'); document.getElementById('auth-screen').classList.remove('hidden'); toggleAuth('login'); userName = "ผู้ใช้งานทั่วไป"; showToast("ออกจากระบบเรียบร้อยแล้ว"); document.getElementById('login-form').reset(); }); }
+
+        // ---------------- PROFILE IMAGE UPLOAD ----------------
+        function previewAvatar(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (!file.type.startsWith('image/')) { showToast('กรุณาเลือกไฟล์รูปภาพเท่านั้น'); return; }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                userProfileImage = e.target.result;
+                document.getElementById('user-avatar-img').src = userProfileImage;
+                document.getElementById('user-avatar-img').classList.remove('hidden');
+                document.getElementById('default-avatar').classList.add('hidden');
+                showToast('อัปเดตรูปโปรไฟล์สำเร็จ 💖');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // ---------------- CORE FUNCTIONS & UI ----------------
+        function updateBalances() {
+            document.querySelectorAll('.user-balance').forEach(el => el.innerText = currentBalance.toLocaleString('th-TH', { minimumFractionDigits: 2 }));
+            document.querySelectorAll('.today-income').forEach(el => el.innerText = earnedIncomeToday.toLocaleString('th-TH', { minimumFractionDigits: 2 }));
+            document.querySelectorAll('.today-commission').forEach(el => el.innerText = cumulativeCommission.toLocaleString('th-TH', { minimumFractionDigits: 2 }));
+            const pendingCount = cartItems.filter(i => i.status === 'pending' || i.status === 'purchased').length;
+            document.getElementById('cart-count').innerText = `${pendingCount} ชิ้นค้าง`;
+            const badge = document.getElementById('cart-badge');
+            if(pendingCount > 0) { badge.innerText = pendingCount; badge.classList.remove('hidden'); } else { badge.classList.add('hidden'); }
+            document.getElementById('display-user-name').innerText = userName;
+        }
+
+        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+        function showToast(msg) { const toast = document.getElementById('toast-notification'); document.getElementById('toast-message').innerText = msg; toast.classList.remove('-translate-y-20', 'opacity-0'); toast.classList.add('translate-y-0', 'opacity-100'); setTimeout(() => { toast.classList.remove('translate-y-0', 'opacity-100'); toast.classList.add('-translate-y-20', 'opacity-0'); }, 3000); }
+        function showLoading(duration, callback) { const loader = document.getElementById('loading-overlay'); loader.classList.add('active'); setTimeout(() => { loader.classList.remove('active'); if(callback) callback(); }, duration); }
+
+        function saveProfile() { const newName = document.getElementById('input-profile-name').value.trim(); if(newName) { userName = newName; updateBalances(); closeModal('modal-edit-profile'); showToast("บันทึกชื่อเรียบร้อย"); } }
+        function saveBank() { const bank = document.getElementById('input-bank-name').value; const name = document.getElementById('input-bank-acc-name').value.trim(); const accNo = document.getElementById('input-bank-acc-no').value.trim(); if(!bank || !name || !accNo) { showToast("กรุณากรอกข้อมูลให้ครบถ้วน"); return; } isBankLinked = true; document.getElementById('bank-status-text').innerText = "ผูกบัญชีแล้ว"; document.getElementById('bank-status-text').className = "text-[10px] text-emerald-500 font-medium"; closeModal('modal-bank-account'); showToast("ผูกบัญชีธนาคารสำเร็จ!"); }
+        function processWithdraw() { const amount = parseFloat(document.getElementById('input-withdraw-amt').value); if(!isBankLinked) { closeModal('modal-withdraw'); setTimeout(()=>openModal('modal-bank-account'), 400); showToast("กรุณาผูกบัญชีธนาคารก่อนถอนเงิน"); return; } if(isNaN(amount) || amount <= 0) { showToast("กรุณาระบุจำนวนเงินที่ถูกต้อง"); return; } if(amount > currentBalance) { showToast("ยอดเงินคงเหลือไม่เพียงพอ"); return; } closeModal('modal-withdraw'); document.getElementById('loading-text').innerText = "กำลังทำรายการถอนเงิน..."; showLoading(2000, () => { currentBalance -= amount; updateBalances(); withdrawHistory.unshift({ id: "WD" + Math.floor(1000 + Math.random()*9000), amount: amount, time: "วันนี้ " + new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + " น.", status: "กำลังตรวจสอบ" }); document.getElementById('input-withdraw-amt').value = ''; showToast(`ส่งคำขอถอนเงิน ฿${amount.toLocaleString()} สำเร็จ`); }); }
+        function openHistory(type) { const content = document.getElementById('history-modal-content'); content.innerHTML = ''; let data = type === 'deposit' ? depositHistory : withdrawHistory; document.getElementById('history-modal-title').innerText = type === 'deposit' ? "ประวัติการฝากเงิน" : "ประวัติการถอนเงิน"; if(data.length === 0) { content.innerHTML = `<div class="text-center py-10 text-gray-400"><i data-lucide="file-clock" class="w-10 h-10 mx-auto mb-2 text-gray-300"></i><p class="text-sm">ไม่มีประวัติทำรายการ</p></div>`; } else { data.forEach(item => { const statusColor = item.status === "สำเร็จ" ? "text-emerald-500 bg-emerald-50 border-emerald-100" : "text-amber-500 bg-amber-50 border-amber-100"; content.innerHTML += `<div class="border border-gray-100 rounded-xl p-3 mb-3 shadow-sm"><div class="flex justify-between items-center mb-1"><span class="text-[10px] font-mono text-gray-400">Ref: ${item.id}</span><span class="text-[10px] px-2 py-0.5 rounded-full border ${statusColor}">${item.status}</span></div><div class="flex justify-between items-end mt-2"><span class="text-xs text-gray-500">${item.time}</span><span class="text-base font-bold ${type==='deposit'?'text-emerald-600':'text-pink-600'}">${type==='deposit'?'+':'-'} ฿${item.amount.toLocaleString()}</span></div></div>`; }); } lucide.createIcons(); openModal('modal-history'); }
+
+        function switchTab(e, tabName) {
+            if(e) e.preventDefault(); document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+            ['nav-home', 'nav-orders', 'nav-account'].forEach(id => { const el = document.getElementById(id); if(el) { el.classList.remove('text-pink-600'); el.classList.add('text-gray-400'); } });
+            document.getElementById('nav-start').className = "w-16 h-16 bg-gradient-to-tr from-pink-500 to-rose-400 rounded-full flex flex-col items-center justify-center text-white shadow-xl shadow-pink-400/40 border-4 border-white active:scale-95 transition-transform hover:-translate-y-1";
+
+            if(tabName === 'home' || tabName === 'orders' || tabName === 'account') { document.getElementById(`tab-${tabName}`).classList.remove('hidden'); document.getElementById(`nav-${tabName}`).classList.remove('text-gray-400'); document.getElementById(`nav-${tabName}`).classList.add('text-pink-600'); } 
+            else if(tabName === 'start') { document.getElementById('tab-start').classList.remove('hidden'); document.getElementById('nav-start').classList.add('scale-110', 'rotate-6'); }
+            if(tabName === 'orders') renderCartItems();
+            document.getElementById('main-content').scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ---------------- BUY & RETURN LOGIC IN CART ----------------
+        function renderCartItems() {
+            const container = document.getElementById('cart-items-container'); const emptyMsg = document.getElementById('empty-cart-msg');
+            Array.from(container.children).forEach(child => { if (child.id !== 'empty-cart-msg') child.remove(); });
+            
+            if (cartItems.length === 0) { emptyMsg.style.display = 'block'; return; } else { emptyMsg.style.display = 'none'; }
+            
+            cartItems.forEach((item, index) => {
+                let statusBadge = ''; let actionButtons = '';
+                if (item.status === 'pending') {
+                    statusBadge = `<span class="text-[10px] bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full font-bold flex items-center gap-1 border border-amber-100"><i data-lucide="clock" class="w-3 h-3"></i> รอการสั่งซื้อ</span>`;
+                    actionButtons = `
+                        <div class="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-pink-50">
+                            <button onclick="contactAdmin()" class="bg-gray-100 text-gray-600 py-2 rounded-xl text-xs font-bold flex justify-center items-center gap-1 hover:bg-gray-200 transition"><i data-lucide="headphones" class="w-3 h-3"></i> ติดต่อแอดมิน</button>
+                            <button onclick="buyCartItem(${index})" class="bg-pink-500 text-white py-2 rounded-xl text-xs font-bold flex justify-center items-center gap-1 hover:bg-pink-600 transition active:scale-95 shadow-sm"><i data-lucide="shopping-cart" class="w-3 h-3"></i> สั่งซื้อ (฿${item.product.price.toLocaleString()})</button>
+                        </div>
+                    `;
+                } else if (item.status === 'purchased') {
+                    statusBadge = `<span class="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-bold flex items-center gap-1 border border-blue-100"><i data-lucide="package" class="w-3 h-3"></i> สั่งซื้อแล้ว</span>`;
+                    actionButtons = `
+                        <div class="mt-3 pt-3 border-t border-pink-50">
+                            <button onclick="claimCartItem(${index})" class="w-full bg-emerald-500 text-white py-2.5 rounded-xl text-xs font-bold flex justify-center items-center gap-1 animate-pulse shadow-lg shadow-emerald-500/30 active:scale-95 transition"><i data-lucide="refresh-cw" class="w-4 h-4"></i> คืนสินค้าและรับเงิน (+฿${(item.product.price + item.product.commission).toLocaleString()})</button>
+                        </div>
+                    `;
+                } else {
+                    statusBadge = `<span class="text-[10px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full font-bold flex items-center gap-1 border border-emerald-100"><i data-lucide="check-circle" class="w-3 h-3"></i> เสร็จสิ้น</span>`;
+                    actionButtons = `
+                        <div class="mt-3 pt-3 border-t border-pink-50 text-right"><span class="text-[11px] text-emerald-500 font-bold"><i data-lucide="check-circle" class="w-3 h-3 inline"></i> รับค่าคอมมิชชันเรียบร้อย</span></div>
+                    `;
+                }
+                container.insertAdjacentHTML('beforeend', `
+                    <div class="bg-white/95 rounded-2xl p-4 border border-pink-100 shadow-sm animate-[fade-in-up_0.3s_ease-out] w-full mb-3">
+                        <div class="flex justify-between items-center mb-2.5 pb-1">${statusBadge}<span class="text-[10px] text-gray-400 font-medium">${item.time} น.</span></div>
+                        <div class="flex gap-3.5 items-center"><div class="w-16 h-16 ${item.product.iconBg} rounded-xl flex items-center justify-center text-3xl border border-pink-100 shrink-0 shadow-inner">${item.product.emoji}</div><div class="flex-1 min-w-0"><h4 class="font-semibold text-[13px] text-gray-800 line-clamp-2 leading-tight">${item.product.name}</h4><div class="mt-1 flex flex-col"><span class="text-[10px] text-gray-500">ราคาสินค้า: ฿${item.product.price.toLocaleString()}</span><span class="text-[11px] font-bold text-pink-500 mt-0.5">ค่าคอมมิชชัน: +฿${item.product.commission.toLocaleString()}</span></div></div></div>
+                        ${actionButtons}
+                    </div>
+                `); 
+            }); 
+            lucide.createIcons();
+        }
+
+        window.buyCartItem = function(index) {
+            const item = cartItems[index];
+            if (currentBalance < item.product.price) { showToast("ยอดเงินของคุณไม่เพียงพอ กรุณาเติมเงิน"); return; }
+            document.getElementById('loading-text').innerText = "กำลังสั่งซื้อสินค้า...";
+            showLoading(1500, () => { currentBalance -= item.product.price; item.status = 'purchased'; updateBalances(); renderCartItems(); showToast("สั่งซื้อสำเร็จ! กรุณากดคืนสินค้าเพื่อรับทุน+กำไร"); });
+        };
+
+        window.claimCartItem = function(index) {
+            const item = cartItems[index]; document.getElementById('loading-text').innerText = "กำลังดำเนินการคืนเงินและค่าคอมมิชชัน...";
+            showLoading(1500, () => {
+                const totalReceive = item.product.price + item.product.commission;
+                currentBalance += totalReceive; earnedIncomeToday += item.product.commission; cumulativeCommission += item.product.commission; item.status = 'completed'; 
+                updateBalances(); renderCartItems(); showToast(`สำเร็จ! ได้รับเงินคืนและค่าคอมรวม ฿${totalReceive.toLocaleString()}`);
+            });
+        };
+
+        // ---------------- RANDOM ORDER LOGIC ----------------
+        function showRandomModal(product) {
+            document.getElementById('modal-product-icon').innerText = product.emoji; document.getElementById('modal-product-name').innerText = product.name; document.getElementById('modal-product-price').innerText = product.price.toLocaleString('th-TH'); document.getElementById('modal-product-commission').innerText = product.commission.toLocaleString('th-TH'); document.getElementById('modal-total-earn').innerText = product.commission.toLocaleString('th-TH');
+            openModal('random-modal');
+        }
+
+        document.getElementById('btn-random-order').addEventListener('click', (e) => {
+            e.preventDefault(); const pendingIndex = getPendingItemIndex();
+            if (pendingIndex !== -1) { showToast("คุณมีออเดอร์ที่ยังทำไม่เสร็จ! ระบบกำลังแสดงออเดอร์เดิม"); selectedProduct = cartItems[pendingIndex].product; setTimeout(() => showRandomModal(selectedProduct), 1000); return; }
+            document.getElementById('loading-text').innerText = "กำลังค้นหาออเดอร์...";
+            showLoading(1500, () => { selectedProduct = productsList[Math.floor(Math.random() * productsList.length)]; showRandomModal(selectedProduct); });
+        });
+
+        function pushProductToPendingCart() {
+            if(!selectedProduct) return; const pendingIndex = getPendingItemIndex();
+            if (pendingIndex === -1) { cartItems.unshift({ product: selectedProduct, status: 'pending', time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) }); } updateBalances();
+        }
+
+        document.getElementById('btn-ok-order').addEventListener('click', (e) => { e.preventDefault(); pushProductToPendingCart(); closeModal('random-modal'); setTimeout(() => switchTab(null, 'orders'), 300); });
+        document.getElementById('btn-chat-admin-order').addEventListener('click', (e) => {
+            e.preventDefault(); pushProductToPendingCart(); closeModal('random-modal');
+            setTimeout(() => {
+                contactAdmin(); // เปิดแชทเลย
+                setTimeout(() => {
+                    const msgs = document.getElementById('chat-messages');
+                    msgs.insertAdjacentHTML('beforeend', `<div class="flex items-end justify-end mb-4 animate-[fade-in-up_0.2s_ease-out]"><div class="bg-gradient-to-r from-pink-500 to-rose-400 p-3 rounded-2xl rounded-tr-sm text-[13px] text-white shadow-md max-w-[80%] break-words">สอบถามค่ะ ออเดอร์ล่าสุดมีปุ่มให้กดสั่งซื้อ ต้องกดใช่ไหมคะ?</div></div>`); msgs.scrollTop = msgs.scrollHeight;
+                    setTimeout(() => { msgs.insertAdjacentHTML('beforeend', `<div class="flex items-start gap-2 max-w-[85%] mb-4 animate-[fade-in-up_0.2s_ease-out]"><div class="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center text-white shrink-0 mt-1 shadow-sm"><i data-lucide="headset" class="w-4 h-4"></i></div><div class="bg-white p-3 rounded-2xl rounded-tl-sm text-[13px] text-gray-700 shadow-sm border border-pink-50 leading-relaxed">ใช่ค่ะลูกค้า ระบบได้ส่งออเดอร์ไปที่ 'ตะกร้าสินค้า' แล้วนะคะ ลูกค้าสามารถไปที่หน้าตะกร้า กด 'สั่งซื้อ' และกด 'คืนสินค้า' เพื่อรับทุน+กำไรได้เลยค่ะ 🎀</div></div>`); lucide.createIcons(); msgs.scrollTop = msgs.scrollHeight; }, 1500);
+                }, 400); // ดีเลย์ให้กล่องแชทโหลดเสร็จ
+            }, 300);
+        });
+
+        // ---------------- FIXED CHAT LOGIC ----------------
+        window.closeChatModal = function() {
+            const overlay = document.getElementById('chat-overlay'); const box = document.getElementById('chat-box');
+            if(!overlay || !box) return;
+            overlay.classList.remove('opacity-100'); overlay.classList.add('opacity-0'); box.classList.remove('chat-modal-active');
+            setTimeout(() => { overlay.classList.add('hidden'); }, 300);
+        }
+
+        window.contactAdmin = function() {
+            const overlay = document.getElementById('chat-overlay'); const box = document.getElementById('chat-box'); 
+            overlay.classList.remove('hidden');
+            setTimeout(() => { overlay.classList.remove('opacity-0'); overlay.classList.add('opacity-100'); box.classList.add('chat-modal-active'); }, 10);
+        }
+
+        // แนบ Event ปุ่ม X ปิดหน้าแชท
+        const btnCloseChat = document.getElementById('close-chat');
+        if(btnCloseChat) {
+            btnCloseChat.addEventListener('click', (e) => { e.preventDefault(); closeChatModal(); });
+        }
+        
+        // กดพื้นที่ดำนอกกรอบปิดแชท
+        document.getElementById('chat-overlay').addEventListener('click', (e) => { if (e.target === document.getElementById('chat-overlay')) closeChatModal(); });
+
+        document.getElementById('chat-form').addEventListener('submit', (e) => {
+            e.preventDefault(); const input = document.getElementById('chat-input'), msgs = document.getElementById('chat-messages'); if(!input.value.trim()) return;
+            msgs.insertAdjacentHTML('beforeend', `<div class="flex items-end justify-end mb-4 animate-[fade-in-up_0.2s_ease-out]"><div class="bg-gradient-to-r from-pink-500 to-rose-400 p-3 rounded-2xl rounded-tr-sm text-[13px] text-white shadow-md max-w-[80%] break-words">${input.value}</div></div>`); input.value = ''; msgs.scrollTop = msgs.scrollHeight;
+            setTimeout(() => { msgs.insertAdjacentHTML('beforeend', `<div class="flex items-start gap-2 max-w-[85%] mb-4 animate-[fade-in-up_0.2s_ease-out]"><div class="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center text-white shrink-0 mt-1 shadow-sm"><i data-lucide="headset" class="w-4 h-4"></i></div><div class="bg-white p-3 rounded-2xl rounded-tl-sm text-[13px] text-gray-700 shadow-sm border border-pink-50 leading-relaxed">รับทราบค่ะ แอดมินกำลังตรวจสอบข้อมูลให้ สักครู่นะคะ 💕</div></div>`); lucide.createIcons(); msgs.scrollTop = msgs.scrollHeight; }, 1000);
+        });
+
+        // ---------------- INIT & DATA GENERATION ----------------
+        const bgContainer = document.getElementById('floating-bg-container'), floatingIcons = ['💖', '🛍️', '🛒', '🎀'];
+        for(let i=0; i<10; i++) { let el = document.createElement('div'); el.className = 'floating-bg-item'; el.innerText = floatingIcons[Math.floor(Math.random()*floatingIcons.length)]; el.style.left = (Math.random()*100)+'vw'; el.style.animationDelay = (Math.random()*15)+'s'; el.style.animationDuration = (10+Math.random()*10)+'s'; el.style.fontSize = (1+Math.random()*1)+'rem'; bgContainer.appendChild(el); }
+        
+        // MARQUEE (Vertical)
+        function generateUniqueTickerData(count) {
+            const data = []; const prefixes = ['089', '061', '095', '082', '099', '081', '086', '092', '064', '065'];
+            for(let i = 0; i < count; i++) {
+                const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+                const suffix = Math.floor(100 + Math.random() * 900);
+                const amount = Math.floor(300 + Math.random() * 4700);
+                data.push({ phone: `${prefix}****${suffix}`, amount: amount });
+            } return data;
+        }
+
+        function initVerticalTicker() {
+            const tickerData = generateUniqueTickerData(100); let html = '';
+            const createItem = (item) => `<div class="marquee-item"><span class="text-[13px] text-gray-600 font-medium">${item.phone}</span><span class="text-[13px] text-emerald-500 font-bold tracking-wide">+ ${item.amount.toLocaleString()} ฿</span></div>`;
+            tickerData.forEach(item => { html += createItem(item); }); tickerData.forEach(item => { html += createItem(item); });
+            
+            const tickerElement = document.getElementById('vertical-ticker');
+            if (tickerElement) tickerElement.innerHTML = html;
+        }
+
+        function renderOrderItems() {
+            const listContainer = document.getElementById('order-items-list'); 
+            if(!listContainer) return;
+            listContainer.innerHTML = '';
+            productsList.forEach(p => { listContainer.insertAdjacentHTML('beforeend', `<div class="bg-white/95 rounded-xl p-3.5 flex gap-3.5 items-center shadow-sm border border-pink-50"><div class="w-14 h-14 ${p.iconBg} rounded-xl flex items-center justify-center text-2xl border border-pink-100 shrink-0">${p.emoji}</div><div class="flex-1 min-w-0"><h4 class="font-semibold text-[13px] text-gray-800 truncate">${p.name}</h4><div class="flex justify-between items-center mt-1.5"><span class="text-[11px] text-gray-500 font-medium">฿${p.price.toLocaleString()}</span><span class="text-[10px] text-pink-600 font-bold bg-pink-50 px-2 py-0.5 rounded-full border border-pink-100">+ ฿${p.commission.toLocaleString()}</span></div></div></div>`); });
+        }
+
+        window.onload = () => { 
+            renderOrderItems(); 
+            updateBalances(); 
+            initVerticalTicker(); 
+        };
+        const animStyle = document.createElement('style'); animStyle.textContent = `@keyframes fade-in-up { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }`; document.head.appendChild(animStyle);
+    </script>
+</body>
+</html>
+
+
+
